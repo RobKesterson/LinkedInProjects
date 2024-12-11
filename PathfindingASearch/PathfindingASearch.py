@@ -197,28 +197,24 @@ def recursiveASearch(searchHeap):
                         listLoopCounter = 0
                 #listLoopCounter += 1
 
-            """
-            edge case for last step - if we are at (25,25), then (25,25) -> (25,33) -> (25,35) and (25,25) -> (25,35)
-            have the same fValue which will cause a collision while performing the push operation on the heap
-            to prevent this, we add a check for (25,25) to remove the (25,25) -> (25,33) -> (25,35) path
-            from the returnList
-            """
-            if workingState[1].pointCoordinates.__eq__("25,25"):
-                returnList.remove(returnList[2])
-
             # insert all remaining members of L onto openList
             for validStates in returnList:
                 # push the tuple onto the heap
                 # f value must go first in tuple pair when pushing onto the heap because the heap will sort based on
                 # first value
-                heapq.heappush(searchHeap, validStates)
+                # Also we must check for duplicate f values as this will cause a collision on the heap
+                if workingState[0] == validStates[0] and validStates[1].pointCoordinates.__eq__(goalState):
+                    heapq.heappush(searchHeap, validStates)
+                elif workingState[0] != validStates[0]:
+                    heapq.heappush(searchHeap, validStates)
+
     return recursiveASearch(searchHeap)
 
 
 # required close list
 closeList = []
 
-mapList = ['PathfindingASearch\map1.txt', 'PathfindingASearch\map2.txt', 'PathfindingASearch\map3.txt']
+mapList = ['map1.txt', 'map2.txt', 'map3.txt']
 
 for mapSelect in mapList:
     mapGuts = loadMapFile(mapSelect)
