@@ -191,4 +191,41 @@ plot_confusion_matrix(tp, fp, fn, tn)
 plt.show()
 print("Sentiment_model has " + str(round((tp / (tp + fp)) * 100, 2)) + "% precision and " + str(round((tp / (tp + fn)) * 100, 2)) + "% recall on the validation data set")
 
+"""
+Up until now, we have used the logistic regression model without an l2 penalty. We shall now apply a variety of l2
+penalties ranging from 10^-2 to 10^5 to observe the difference in predictive classification.
+"""
 
+# Set up the regularization penalities to try
+print("Defining l2 penalties to try with sentiment_model")
+l2_penalties = [0.01, 1, 4, 10, 1e2, 1e3, 1e5]
+l2_penalty_names = [f'coefficients [L2={l2_penalty:.0e}]'
+                    for l2_penalty in l2_penalties]
+
+# Add the coefficients to this coef_table for each model
+coef_table = pd.DataFrame(columns=['word'] + l2_penalty_names)
+coef_table['word'] = features
+
+# Set up an empty list to store the accuracies (will convert to DataFrame after loop)
+accuracy_data = []
+
+for l2_penalty, l2_penalty_column_name in zip(l2_penalties, l2_penalty_names):
+    # Train the model
+    model = LogisticRegression(penalty='l2', random_state=1, fit_intercept=False, C=1 / l2_penalty)
+    model.fit(train_data[features], train_data['sentiment'])
+
+    # Save the coefficients in coef_table
+    coef_table[l2_penalty_column_name] = model.coef_[0]
+
+    # Calculate and save the train and validation accuracies
+    train_data_predicted = model.predict(train_data[features])
+    validation_data_predicted = model.predict(validation_data[features])
+
+    train_data_predicted_accuracy = accuracy_score(train_data['sentiment'], train_data_predicted)
+    validation_data_predicted_accuracy = accuracy_score(validation_data['sentiment'], validation_data_predicted)
+
+    accuracy_data.append({'l2_penalty': l2_penalty, 'train_accuracy': train_data_predicted_accuracy,
+                          'validation_accuracy': validation_data_predicted_accuracy})
+
+accuracies_table = pd.DataFrame(accuracy_data)
+print(accuracies_table)
